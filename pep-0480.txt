@@ -2,8 +2,8 @@ PEP: 480
 Title: Surviving a Compromise of PyPI: The Maximum Security Model
 Version: $Revision$
 Last-Modified: $Date$
-Author: Trishank Karthik Kuppusamy <trishank@nyu.edu>,
-        Vladimir Diaz <vladimir.diaz@nyu.edu>, Donald Stufft <donald@stufft.io>,
+Author: Trishank Karthik Kuppusamy <karthik@trishank.com>,
+        Vladimir Diaz <vladimir.diaz@nyu.edu>,
         Justin Cappos <jcappos@nyu.edu>
 BDFL-Delegate: Richard Jones <r1chardj0n3s@gmail.com>
 Discussions-To: DistUtils mailing list <distutils-sig@python.org>
@@ -608,18 +608,19 @@ responsible only for mirroring PyPI.  The mirrors can be checked against one
 another to detect accidental or malicious failures.
 
 Another approach is to periodically generate the cryptographic hash of
-*snapshot* and tweet it.  For example, upon receiving the tweet, a user comes
-forward with the actual metadata and the repository maintainers are then able
-to verify metadata's cryptographic hash.  Alternatively, PyPI may periodically
-archive its own versions of *snapshot* rather than rely on externally provided
-metadata.  In this case, PyPI SHOULD take the cryptographic hash of every
-package on the repository and store this data on an offline device. If any
-package hash has changed, this indicates an attack has occurred.
+each *snapshot* and tweet it.  For example, upon receiving the tweet, a
+user comes forward with the actual metadata and the repository
+maintainers are then able to verify the metadata's cryptographic hash.
+Alternatively, PyPI may periodically archive its own versions of
+*snapshots* rather than rely on externally provided metadata.  In this
+case, PyPI SHOULD take the cryptographic hash of every package on the
+repository and store this data on an offline device. If any package
+hash has changed, this indicates an attack has occurred.
 
 Attacks that serve different versions of metadata or that freeze a version of a
 package at a specific version can be handled by TUF with techniques such as
 implicit key revocation and metadata mismatch detection [2]_.
-n
+
 
 Key Compromise Analysis
 =======================
@@ -642,7 +643,7 @@ attacks, or metadata inconsistency attacks.
 | Role Compromise   | Malicious Updates | Freeze Attack         | Metadata Inconsistency|
 |                   |                   |                       | Attacks               |
 +===================+===================+=======================+=======================+
-| timetamp          | NO                | YES                   | NO                    |
+| timestamp         | NO                | YES                   | NO                    |
 |                   | snapshot and      | limited by earliest   | snapshot needs to     |
 |                   | targets or any    | root, targets, or bin | cooperate             |
 |                   | of the delegated  | metadata expiry time  |                       |
@@ -878,9 +879,9 @@ conclusions or recommendations expressed in this material are those of the
 author(s) and do not necessarily reflect the views of the National Science
 Foundation.
 
-We thank Nick Coghlan, Daniel Holth and the distutils-sig community in general
-for helping us to think about how to usably and efficiently integrate TUF with
-PyPI.
+We thank Nick Coghlan, Daniel Holth, Donald Stufft, and the distutils-sig
+community in general for helping us to think about how to usably and
+efficiently integrate TUF with PyPI.
 
 Roger Dingledine, Sebastian Hahn, Nick Mathewson,  Martin Peck and Justin
 Samuel helped us to design TUF from its predecessor Thandy of the Tor project.

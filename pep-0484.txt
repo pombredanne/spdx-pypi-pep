@@ -307,7 +307,7 @@ argument to ``TypeVar()`` must be a string equal to the variable name
 to which it is assigned.  Type variables must not be redefined.
 
 ``TypeVar`` supports constraining parametric types to a fixed set of possible
-types (note: those types cannot be parametrized by type variables). For
+types (note: those types cannot be parameterized by type variables). For
 example, we can define a type variable that ranges over just ``str`` and
 ``bytes``. By default, a type variable ranges over all possible types.
 Example of constraining a type variable::
@@ -720,34 +720,23 @@ Type variables with an upper bound
 ----------------------------------
 
 A type variable may specify an upper bound using ``bound=<type>`` (note:
-<type> itself cannot be parametrized by type variables). This means that an
+<type> itself cannot be parameterized by type variables). This means that an
 actual type substituted (explicitly or implicitly) for the type variable must
-be a subtype of the boundary type. A common example is the definition of a
-``Comparable`` type that works well enough to catch the most common errors::
+be a subtype of the boundary type. Example::
 
-  from typing import TypeVar
+  from typing import TypeVar, Sized
 
-  class Comparable(metaclass=ABCMeta):
-      @abstractmethod
-      def __lt__(self, other: Any) -> bool: ...
-      ...  # __gt__ etc. as well
+  ST = TypeVar('ST', bound=Sized)
 
-  CT = TypeVar('CT', bound=Comparable)
-
-  def min(x: CT, y: CT) -> CT:
-      if x < y:
+  def longer(x: ST, y: ST) -> ST:
+      if len(x) > len(y):
           return x
       else:
           return y
 
-  min(1, 2)      # ok, return type int
-  min('x', 'y')  # ok, return type str
-
-(Note that this is not ideal -- for example ``min('x', 1)`` is invalid
-at runtime but a type checker would simply infer the return type
-``Comparable``.  Unfortunately, addressing this would require
-introducing a much more powerful and also much more complicated
-concept, F-bounded polymorphism.  We may revisit this in the future.)
+  longer([1], [1, 2])  # ok, return type List[int]
+  longer({1}, {1, 2})  # ok, return type Set[int]
+  longer([1], {1, 2})  # ok, return type Collection[int]
 
 An upper bound cannot be combined with type constraints (as in used
 ``AnyStr``, see the example earlier); type constraints cause the
@@ -1080,7 +1069,7 @@ they are assumed to be ``Any``::
 
 This rule also applies to ``Tuple``, in annotation context it is equivalent
 to ``Tuple[Any, ...]`` and, in turn, to ``tuple``. As well, a bare
-``Callable`` in an annotation is equivalent to ``Callable[[...], Any]`` and,
+``Callable`` in an annotation is equivalent to ``Callable[..., Any]`` and,
 in turn, to ``collections.abc.Callable``::
 
   from typing import Tuple, List, Callable
@@ -1724,7 +1713,7 @@ arguments depending on the type of the callable::
   from typing import Callable, Iterable, Iterator, Tuple, TypeVar, overload
 
   T1 = TypeVar('T1')
-  T2 = TypeVar('T2)
+  T2 = TypeVar('T2')
   S = TypeVar('S')
 
   @overload
@@ -1870,11 +1859,10 @@ The Typeshed Repo
 -----------------
 
 There is a shared repository where useful stubs are being collected
-[typeshed]_.  Note that stubs for a given package will not be included
-here without the explicit consent of the package owner.  Further
-policies regarding the stubs collected here will be decided at a later
-time, after discussion on python-dev, and reported in the typeshed
-repo's README.
+[typeshed]_.  Policies regarding the stubs collected here will be
+decided separately and reported in the repo's documentation.
+Note that stubs for a given package will not be included here
+if the package owners have specifically requested that they be omitted.
 
 
 Exceptions
@@ -2200,7 +2188,7 @@ Which brackets for generic type parameters?
 
 Most people are familiar with the use of angular brackets
 (e.g. ``List<int>``) in languages like C++, Java, C# and Swift to
-express the parametrization of generic types.  The problem with these
+express the parameterization of generic types.  The problem with these
 is that they are really hard to parse, especially for a simple-minded
 parser like Python.  In most languages the ambiguities are usually
 dealt with by only allowing angular brackets in specific syntactic

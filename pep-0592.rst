@@ -3,7 +3,7 @@ Title: Adding "Yank" Support to the Simple API
 Author: Donald Stufft <donald@stufft.io>
 BDFL-Delegate: Paul Moore <p.f.moore@gmail.com>
 Discussions-To: https://discuss.python.org/c/packaging
-Status: Accepted
+Status: Final
 Type: Standards Track
 Content-Type: text/x-rst
 Created: 07-May-2019
@@ -91,7 +91,7 @@ a human being is currently trying to directly install a yanked file, that
 it fails as if that file had been deleted. However, when a human did that
 awhile ago, and now a computer is just continuing to mechanically follow
 the original order to install the now yanked file, then it acts as if it
-had not been yaned.
+had not been yanked.
 
 An installer **MUST** ignore yanked releases, if the selection constraints
 can be satisfied with a non-yanked version, and **MAY** refuse to use a

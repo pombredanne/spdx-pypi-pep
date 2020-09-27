@@ -61,7 +61,7 @@ Here's a hopefully-complete list.
   and ``docs.nyc1.psf.io``, the server that hosts the documentation.
   You'll be uploading files directly here.
 
-* Admin access to ``https://github.com/python/cpython``
+* Administrator access to ``https://github.com/python/cpython``.
 
 * An administrator account on www.python.org, including an "API key".
 
@@ -85,7 +85,8 @@ There are several types of releases you will need to make.  These include:
 
 * ``alpha``
 * ``beta``
-* ``release candidate``
+* ``release candidate 1``
+* ``release candidate 2+``
 * ``final``
 * ``new branch``
 * ``begin bugfix mode``
@@ -189,7 +190,7 @@ to perform some manual editing steps.
 
 - Check the stable buildbots.
 
-  Go to https://buildbot.python.org/all/#/grid
+  Go to https://buildbot.python.org/all/#/release_status
 
   Look at the buildbots for the release
   you're making.  Ignore any that are offline (or inform the community so
@@ -209,6 +210,15 @@ to perform some manual editing steps.
   use the branch on your fork to do the release engineering work, including
   tagging the release, and you will use it to share with the other experts
   for making the binaries.
+
+  For a **final** or **release candidate 2+** release, if you are going
+  to cherry-pick a subset of changes for the next rc or final from all those
+  merged since the last rc, you should create a release
+  engineering branch starting from the most recent release candidate tag,
+  i.e. ``v3.8.0rc1``. You will then cherry-pick changes from the standard
+  release branch as necessary into the release engineering branch and
+  then proceed as usual.  If you are going to take all of the changes
+  since the previous rc, you can proceed as normal.
 
 - Notify all committers by sending email to python-committers@python.org.
 
@@ -503,25 +513,16 @@ to perform some manual editing steps.
 If green, it's time to merge the release engineering branch back into
 the main repo.
 
-- If the branch is not yet in "security fixes only mode", temporarily
-  disable others' pushes to the branch in the main cpython
-  repo and bypass the normal status checks.  Go to the
-  Settings -> Branches page:
+- In order to push your changes to Github, you'll have to temporarily
+  disable branch protection for administrators.  Go to the
+  ``Settings | Branches`` page:
 
   https://github.com/python/cpython/settings/branches/
 
-  and choose the Edit button for the branch you are working on.
-  On the Branch Protection page, check the "Restrict who can push to
-  this branch" box and add yourself.  Also, uncheck the "Include
-  administrators" box and save changes.
-
-  (This step isn't necessary for branches already in "security fixes mode".
-  However, the next step is!)
-
-- While you're editing the settings for your branch, you'll also need to
-  uncheck "Require status checks to pass before merging".  This temporarily
-  disables requiring CI status checks (Travis, AppVeyor, etc) be run and
-  passed before a revision may be pushed.
+  "Edit" the settings for the branch you're releasing on.
+  This will load the settings page for that branch.
+  Uncheck the "Include administrators" box and press the
+  "Save changes" button at the bottom.
 
 - Merge your release clone into the main development repo::
 
@@ -550,10 +551,30 @@ the main repo.
 
     $ git checkout -b X.Y
 
+  Do any steps needed to setup the new release branch, including:
+
+        * In README.rst, change all references from ``master`` to
+          the new branch, in particular, GitHub repo URLs.
+
 - For *all* releases, do the guided post-release steps with the
   release script.::
 
     $ .../release-tools/release.py --done X.Y.ZaN
+
+- For a **final** or **release candidate 2+** release, you may need to
+  do some post-merge cleanup.  Check the top-level ``README.rst``
+  and ``include/patchlevel.h`` files to ensure they now reflect
+  the desired post-release values for on-going development.
+  The patchlevel should be the release tag with a `+`.
+  Also, if you cherry-picked changes from the standard release
+  branch into the release engineering branch for this release,
+  you will now need to manual remove each blurb entry from
+  the ``Misc/NEWS.d/next`` directory that was cherry-picked
+  into the release you are working on since that blurb entry
+  is now captured in the merged x.y.z.rst fils for the new
+  release.  Otherwise, the blurb entry will appear twice in
+  the `changelog.html` file, once under `Python next` and again
+  under `x.y.z`.
 
 - Review and commit these changes::
 
@@ -569,7 +590,7 @@ the main repo.
         $ git checkout master
         $ .../release-tools/release.py --bump 3.9.0a0
 
-    - Edit all version references in the README
+    - Edit all version references in README.rst
 
     - Move any historical "what's new" entries from ``Misc/NEWS`` to
       ``Misc/HISTORY``.
@@ -582,7 +603,14 @@ the main repo.
 
     - Add a new ``whatsnew/3.x.rst`` file (with the comment near the top
       and the toplevel sections copied from the previous file) and
-      add it to the toctree in ``whatsnew/index.rst``.
+      add it to the toctree in ``whatsnew/index.rst``.  But beware that
+      the initial ``whatsnew/3.x.rst`` checkin from previous releases
+      may be incorrect due to the initial midstream change to ``blurb``
+      that propagates from release to release!  Help break the cycle: if
+      necessary make the following change::
+
+          - For full details, see the :source:`Misc/NEWS` file.
+          + For full details, see the :ref:`changelog <changelog>`.
 
     - Update the version number in ``configure.ac`` and re-run ``autoconf``.
 
@@ -639,24 +667,16 @@ the main repo.
   Also, add a ``needs backport to X.Y`` label to the Github repo.
   https://github.com/python/cpython/labels
 
-- For all releases, if you made temporary changes to the permissions
-  for the branch on GitHub, undo those temporary changes now.
+- You can now re-enable enforcement of branch settings against administrators
+  on Github.  Go back to the ``Settings | Branch`` page:
+
   https://github.com/python/cpython/settings/branches/
 
-  A reminder of changes you may have made:
+  "Edit" the settings for the branch you're releasing on.
+  Re-check the "Include administrators" box and press the
+  "Save changes" button at the bottom.
 
-  - Uncheck the "Restrict who can push to this branch".  (Only necessary
-    if the branch is not in "security-fixes-only mode".)
-
-  - Check the "Include administrators" box.  (Only necessary
-    if the branch is not in "security-fixes-only mode".)
-
-  - Check the "Require status checks to pass before merging" box.  (Always needed.)
-
-  Save your changes.
-
-Now it's time to twiddle the web site.  None of this is automated by release.py
-at the moment, sorry.
+Now it's time to twiddle the web site.  Almost none of this is automated, sorry.
 
 To do these steps, you must have the permission to edit the website.  If you
 don't have that, ask someone on pydotorg@python.org for the proper
@@ -782,7 +802,11 @@ with RevSys.)
 
 - Send email to python-committers informing them that the release has been
   published and a reminder about any relevant changes in policy
-  based on the phase of the release cycle.
+  based on the phase of the release cycle.  In particular,
+  if this is a **new branch** release, remind everyone that the
+  new release branch exists and that they need to start
+  considering whether to backport to it when merging changes to
+  master.
 
 - Update any release PEPs (e.g. 361) with the release dates.
 
@@ -810,7 +834,19 @@ with RevSys.)
   pieces of the development infrastructure are updated for the new branch.
   These include:
 
+  - Update the issue tracker for the new branch.
+ 
+      * Add the new version to the versions list (contact the tracker
+        admins?).
+
+      * Add a `regressions keyword <https://bugs.python.org/keyword>`_
+        for the release
+
   - Update the devguide to reflect the new branches and versions.
+
+  - Create a PR to update the supported releases table on the
+    `downloads page <https://www.python.org/downloads/>`_.
+    (See https://github.com/python/pythondotorg/issues/1302)
 
   - Ensure buildbots are defined for the new branch (contact zware).
 
@@ -906,6 +942,10 @@ else does them.  Some of those tasks include:
 - In the developer's guide, add the branch to the recent end-of-life branches
   list (https://devguide.python.org/devcycle/#end-of-life-branches) and update
   or remove references to the branch elsewhere in the devguide.
+
+- If necessary, create a PR to update the supported releases table on the
+  `downloads page <https://www.python.org/downloads/>`_.
+  (See https://github.com/python/pythondotorg/issues/1302)
 
 - Retire the release from the bugs.python.org issue tracker. Tasks include:
 
